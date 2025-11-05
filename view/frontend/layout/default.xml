@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/*
+ * Alpine frontend components are inspired and created starting from Loki_Base and Loki_Theme
+ *
+ * loki-theme/magento2-luma-components
+ * Version: 0.0.9
+ * Copyright: 2025 Jisse Reitsma
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:View/Layout:etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="alpine-js.store">
+            <block
+                name="alpine-js.store.local-storage"
+                template="MageOS_AlpineLocalStorage::script/store/localstorage-store.phtml">
+                <arguments>
+                    <argument name="section_config" xsi:type="object">MageOS\AlpineLocalStorage\ViewModel\SectionConfig</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

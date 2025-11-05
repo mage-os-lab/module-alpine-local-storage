@@ -1,0 +1,113 @@
+<?php
+declare(strict_types=1);
+
+use Loki\Base\ViewModel\SectionConfig;
+use Magento\Framework\View\Element\Template;
+
+/** @version 1.1.8 */
+/** @var Template $block */
+/** @var SectionConfig $sectionConfig */
+
+$sectionConfig = $block->getSectionConfig();
+?>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('LokiLocalStorage', {
+            key: 'mage-cache-storage',
+            sectionLifetime: <?= (int)$sectionConfig->getSectionDataLifeTime() * 60 ?>,
+            data: {},
+            init() {
+                const storedData = localStorage.getItem(this.key);
+                this.data = storedData ? JSON.parse(storedData) : {};
+
+                if (!this.data) {
+                    this.refresh();
+                }
+
+                let changed = false;
+                const cookieSections = LokiCookies.get('section_data_ids') || {};
+
+                Object.entries(this.data).forEach(([key, value]) => {
+                    const isSectionExpired = !value.data_id || parseInt(value.data_id) + this.sectionLifetime < this.getCurrentTimestamp();
+                    const isCookieSectionExpired = cookieSections[key] && cookieSections[key] + this.sectionLifetime < this.getCurrentTimestamp();
+
+                    if (isSectionExpired || isCookieSectionExpired) {
+                        delete this.data[key];
+                        changed = true;
+                    }
+                })
+
+                if (changed) {
+                    localStorage.setItem(this.key, JSON.stringify(this.data));
+                }
+
+                document.dispatchEvent(new CustomEvent('loki:init:localstorage-store', {}));
+            },
+            getNewSectionLifetime() {
+                return this.getCurrentTimestamp() + this.sectionLifetime;
+            },
+            getCurrentTimestamp() {
+                return Math.floor(Date.now() / 1000);
+            },
+            save() {
+                localStorage.setItem(this.key, JSON.stringify(this.data));
+            },
+            refresh(sections, forceNewSectionTimestamp) {
+                let url = new URL(LOKI_BASE_URL + '/customer/section/load');
+                if (sections) {
+                    url.searchParams.append('sections', sections);
+                }
+
+                forceNewSectionTimestamp = !!forceNewSectionTimestamp;
+                if (forceNewSectionTimestamp) {
+                    url.searchParams.append('force_new_section_timestamp', 'true');
+                    url.searchParams.append('_', Math.floor(Date.now() / 1000));
+                }
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then(newData => {
+                        if (typeof newData === 'object') {
+                            this.data = Object.assign(this.data, newData);
+                            this.save();
+                        }
+                    })
+            },
+            get(key) {
+                if (!this.data) {
+                    return {};
+                }
+
+                if (key === undefined) {
+                    return this.data;
+                }
+
+                if (!this.data[key] ) {
+                    this.refresh(key);
+                }
+
+                return this.data[key];
+            },
+            set(key, value) {
+                this.data[key] = value;
+                this.save();
+            },
+            remove(key) {
+                if (key !== undefined) {
+                    delete this.data[key];
+                    this.save();
+                }
+            },
+            reset() {
+                this.data = {};
+                localStorage.removeItem(this.key);
+            }
+        });
+    });
+</script>
