@@ -25,7 +25,7 @@ $sectionConfig = $block->getSectionConfig();
                 }
 
                 let changed = false;
-                const cookieSections = LokiCookies.get('section_data_ids') || {};
+                const cookieSections = MageCookies.get('section_data_ids') || {};
 
                 Object.entries(this.data).forEach(([key, value]) => {
                     const isSectionExpired = !value.data_id || parseInt(value.data_id) + this.sectionLifetime < this.getCurrentTimestamp();
