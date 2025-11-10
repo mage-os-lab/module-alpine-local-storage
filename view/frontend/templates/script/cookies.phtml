@@ -4,21 +4,22 @@ declare(strict_types=1);
 use Loki\Base\ViewModel\CookieConfig;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 /** @version 1.1.8 */
 /** @var Template $block */
 /** @var CookieConfig $cookieConfig */
 /** @var Escaper $escaper */
+/** @var SecureHtmlRenderer $secureRenderer */
 
 $cookieConfig = $block->getCookieConfig();
-?>
-<script>
+$script = <<<SCRIPT
     const MageCookies = {
-        lifetime: <?= (int)$cookieConfig->getLifetime() ?>,
-        domain: '<?= $escaper->escapeHtml($cookieConfig->getDomain()) ?>',
-        path: '<?= $escaper->escapeHtml($cookieConfig->getPath()) ?>',
-        httpOnly: <?= (int)$cookieConfig->isHttpOnly() ?>,
-        sameSite: '<?=  $escaper->escapeHtml($cookieConfig->getSameSite()) ?>',
+        lifetime: {$cookieConfig->getLifetime()},
+        domain: '{$escaper->escapeHtml($cookieConfig->getDomain())}',
+        path: '{$escaper->escapeHtml($cookieConfig->getPath())}',
+        httpOnly: {$cookieConfig->isHttpOnly()},
+        sameSite: '{$cookieConfig->getSameSite()}',
         getAll() {
             const cookies = {};
             document.cookie.split(';').forEach(cookie => {
@@ -89,4 +90,6 @@ $cookieConfig = $block->getCookieConfig();
             return this.get('user_allowed_save_cookie');
         }
     }
-</script>
+SCRIPT;
+?>
+<?= $secureRenderer->renderTag('script', [], $script, false); ?>

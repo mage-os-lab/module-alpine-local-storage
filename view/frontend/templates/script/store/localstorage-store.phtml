@@ -1,20 +1,22 @@
 <?php
 declare(strict_types=1);
 
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use MageOS\AlpineLocalStorage\ViewModel\SectionConfig;
 use Magento\Framework\View\Element\Template;
 
 /** @version 1.1.8 */
 /** @var Template $block */
 /** @var SectionConfig $sectionConfig */
+/** @var SecureHtmlRenderer $secureRenderer */
 
 $sectionConfig = $block->getSectionConfig();
-?>
-<script>
+$sectionLifetime = $sectionConfig->getSectionDataLifeTime() * 60;
+$script = <<<SCRIPT
     document.addEventListener('alpine:init', () => {
         Alpine.store('LocalStorage', {
             key: 'mage-cache-storage',
-            sectionLifetime: <?= (int)$sectionConfig->getSectionDataLifeTime() * 60 ?>,
+            sectionLifetime: {$sectionLifetime},
             data: {},
             init() {
                 const storedData = localStorage.getItem(this.key);
@@ -110,4 +112,6 @@ $sectionConfig = $block->getSectionConfig();
             }
         });
     });
-</script>
+SCRIPT;
+?>
+<?= $secureRenderer->renderTag('script', [], $script, false); ?>
