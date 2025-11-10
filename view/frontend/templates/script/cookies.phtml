@@ -1,0 +1,92 @@
+<?php
+declare(strict_types=1);
+
+use Loki\Base\ViewModel\CookieConfig;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @version 1.1.8 */
+/** @var Template $block */
+/** @var CookieConfig $cookieConfig */
+/** @var Escaper $escaper */
+
+$cookieConfig = $block->getCookieConfig();
+?>
+<script>
+    const MageCookies = {
+        lifetime: <?= (int)$cookieConfig->getLifetime() ?>,
+        domain: '<?= $escaper->escapeHtml($cookieConfig->getDomain()) ?>',
+        path: '<?= $escaper->escapeHtml($cookieConfig->getPath()) ?>',
+        httpOnly: <?= (int)$cookieConfig->isHttpOnly() ?>,
+        sameSite: '<?=  $escaper->escapeHtml($cookieConfig->getSameSite()) ?>',
+        getAll() {
+            const cookies = {};
+            document.cookie.split(';').forEach(cookie => {
+                const parts = cookie.split('=');
+                const name = parts[0].trim();
+                let value = parts[1].trim();
+
+                value = decodeURIComponent(value);
+
+                if (value.startsWith('[') || value.startsWith('{')) {
+                    value = JSON.parse(value);
+                }
+
+                cookies[name] = value;
+            })
+
+            return cookies;
+        },
+        get(name) {
+            return this.getAll()[name];
+        },
+        set(name, value, lifetime) {
+            if (typeof value !== 'string') {
+                value = JSON.stringify(value);
+            }
+
+            let cookieParts = this.getCookieParts(name, value, lifetime);
+            document.cookie = cookieParts.join('; ');
+        },
+        remove(name) {
+            let cookieParts = this.getCookieParts(name, 0);
+            cookieParts = cookieParts.filter(cookiePart => !cookiePart.startsWith('SameSite='));
+            cookieParts = cookieParts.filter(cookiePart => !cookiePart.startsWith('domain='));
+            cookieParts = cookieParts.filter(cookiePart => !cookiePart.startsWith('max-age='));
+            cookieParts = cookieParts.filter(cookiePart => !cookiePart.startsWith('secure'));
+            cookieParts.push('max-age=-999999');
+
+            document.cookie = cookieParts.join('; ');
+            document.cookie = name + '=0; max-age=-999999';
+        },
+        getCookieParts(name, value, lifetime) {
+            let cookieParts = [];
+
+            value = encodeURIComponent(value);
+            cookieParts.push(name + '=' + value);
+
+            if (!lifetime > 0) {
+                lifetime = this.lifetime;
+            }
+            cookieParts.push('max-age=' + lifetime);
+
+            if (this.path) {
+                cookieParts.push('path=' + this.path);
+            }
+
+            if (this.domain) {
+                cookieParts.push('domain=' + this.domain);
+            }
+
+            if (this.httpOnly) {
+                cookieParts.push('secure');
+            }
+
+            cookieParts.push('SameSite=' + this.sameSite);
+            return cookieParts;
+        },
+        isAllowedSaving() {
+            return this.get('user_allowed_save_cookie');
+        }
+    }
+</script>

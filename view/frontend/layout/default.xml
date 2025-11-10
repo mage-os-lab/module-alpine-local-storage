@@ -13,6 +13,10 @@
     <body>
         <referenceContainer name="alpine-js.store">
             <block
+                name="alpine-js.cookies"
+                template="MageOS_AlpineLocalStorage::script/cookies.phtml"/>
+
+            <block
                 name="alpine-js.store.local-storage"
                 template="MageOS_AlpineLocalStorage::script/store/localstorage-store.phtml">
                 <arguments>
