@@ -14,7 +14,11 @@
         <referenceContainer name="alpine-js.store">
             <block
                 name="alpine-js.cookies"
-                template="MageOS_AlpineLocalStorage::script/cookies.phtml"/>
+                template="MageOS_AlpineLocalStorage::script/cookies.phtml">
+                <arguments>
+                    <argument name="cookie_config" xsi:type="object">MageOS\AlpineLocalStorage\ViewModel\CookieConfig</argument>
+                </arguments>
+            </block>
 
             <block
                 name="alpine-js.store.local-storage"
