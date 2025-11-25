@@ -15,7 +15,12 @@ document.addEventListener('alpine:init', () => {
             const cookieSections = MageCookies.get('section_data_ids') || {};
 
             Object.entries(this.data).forEach(([key, value]) => {
-                const isSectionExpired = !value.data_id || parseInt(value.data_id) + this.sectionLifetime < this.getCurrentTimestamp();
+                let sectionTime = parseInt(value.data_id);
+                if (this.sectionLifetime > 0) {
+                    sectionTime = sectionTime + this.sectionLifetime;
+                }
+
+                const isSectionExpired = !value.data_id || sectionTime < this.getCurrentTimestamp();
                 const isCookieSectionExpired = cookieSections[key] && cookieSections[key] + this.sectionLifetime < this.getCurrentTimestamp();
 
                 if (isSectionExpired || isCookieSectionExpired) {
