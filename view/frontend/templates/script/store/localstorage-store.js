@@ -53,7 +53,7 @@ document.addEventListener('alpine:init', () => {
             localStorage.setItem(this.key, JSON.stringify(this.data), true);
         },
         refresh(sections, forceNewSectionTimestamp) {
-            let url = new URL(LOKI_BASE_URL + '/customer/section/load');
+            let url = new URL(BASE_URL + '/customer/section/load');
             if (sections) {
                 url.searchParams.append('sections', sections);
             }
