@@ -41,7 +41,7 @@ document.addEventListener('alpine:init', () => {
                 localStorage.setItem(this.key, JSON.stringify(this.data), true);
             }
 
-            document.dispatchEvent(new CustomEvent('loki:init:localstorage-store', {}));
+            document.dispatchEvent(new CustomEvent('localstorage-store:init', {}));
         },
         getNewSectionLifetime() {
             return this.getCurrentTimestamp() + this.sectionLifetime;
