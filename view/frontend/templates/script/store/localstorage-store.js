@@ -41,7 +41,7 @@ document.addEventListener('alpine:init', () => {
                 localStorage.setItem(this.key, JSON.stringify(this.data), true);
             }
 
-            document.dispatchEvent(new CustomEvent('localstorage-store:init', {}));
+            document.dispatchEvent(new CustomEvent('alpine-store:localstorage:init', {}));
         },
         getNewSectionLifetime() {
             return this.getCurrentTimestamp() + this.sectionLifetime;
@@ -52,7 +52,7 @@ document.addEventListener('alpine:init', () => {
         save() {
             localStorage.setItem(this.key, JSON.stringify(this.data), true);
         },
-        refresh(sections, forceNewSectionTimestamp) {
+        async refresh(sections, forceNewSectionTimestamp) {
             let url = new URL(BASE_URL + '/customer/section/load');
             if (sections) {
                 url.searchParams.append('sections', sections);
@@ -64,22 +64,22 @@ document.addEventListener('alpine:init', () => {
                 url.searchParams.append('_', Math.floor(Date.now() / 1000));
             }
 
-            fetch(url, {
+            const response = await fetch(url, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-            })
-                .then((response) => {
-                    return response.json();
-                })
-                .then(newData => {
-                    if (typeof newData === 'object') {
-                        this.data = Object.assign(this.data, newData);
-                        this.save();
-                    }
-                })
+            });
+
+            const newData = await response.json();
+
+            if (typeof newData === 'object') {
+                this.data = Object.assign(this.data, newData);
+                this.save();
+            }
+
+            return newData;
         },
-        get(key) {
+        async get(key) {
             if (!this.data) {
                 return {};
             }
@@ -88,8 +88,8 @@ document.addEventListener('alpine:init', () => {
                 return this.data;
             }
 
-            if (!this.data[key]) {
-                this.refresh(key);
+            if (!this.data[key] ) {
+                this.data[key] = await this.refresh(key);
             }
 
             return this.data[key];
@@ -119,3 +119,18 @@ localStorage.setItem = function(key, value, skipEvent) {
 
     originalLocalStorageSetItem.apply(this, [key, value]);
 };
+
+function localStorageTestMerge(additionalData) {
+    if (!additionalData || Object.keys(additionalData).length === 0) {
+        return;
+    }
+
+    const json = localStorage.getItem('mage-cache-storage');
+    if (!json) {
+        return;
+    }
+
+    const data  = JSON.parse(json);
+    const newData = Object.assign({}, data, additionalData);
+    localStorage.setItem('mage-cache-storage', JSON.stringify(newData));
+}

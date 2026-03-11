@@ -5,7 +5,6 @@ use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use MageOS\AlpineLocalStorage\ViewModel\SectionConfig;
 use Magento\Framework\View\Element\Template;
 
-/** @version 1.1.8 */
 /** @var Template $block */
 /** @var SectionConfig $sectionConfig */
 /** @var SecureHtmlRenderer $secureRenderer */
@@ -13,6 +12,6 @@ use Magento\Framework\View\Element\Template;
 $sectionConfig = $block->getSectionConfig();
 $sectionLifetime = $sectionConfig->getSectionDataLifeTime() * 60;
 $script = 'const ALPINE_SECTION_LIFETIME = '.(int)$sectionLifetime.";\n";
-$script = file_get_contents(__DIR__.'/localstorage-store.js');
+$script .= file_get_contents(__DIR__.'/localstorage-store.js');
 ?>
 <?= $secureRenderer->renderTag('script', [], $script, false); ?>
